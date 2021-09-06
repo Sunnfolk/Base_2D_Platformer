@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 public class PlayerMove : MonoBehaviour
 {
@@ -21,8 +23,9 @@ public class PlayerMove : MonoBehaviour
     private float m_JumpTimeCounter;
     private float m_JumpTime = 0.25f;
     
-   
-
+    /*MISC*/
+    private Vector2 m_Dir;
+    private bool dashCheck;
 
     private void Start()
     {
@@ -32,11 +35,10 @@ public class PlayerMove : MonoBehaviour
     
     private void Update()
     {
+       
         
-        Dash(m_Input.downDash, Vector2.down, m_DownSpeed);
-
-        var dashDir = new Vector2(m_Rigidbody2D.velocity.x, 0f);
-        Dash(m_Input.horizontalDash, dashDir, m_dashSpeed);
+        IsGrounded();
+        DownDash();
         
         if (m_Input.jump)
         {
@@ -46,19 +48,27 @@ public class PlayerMove : MonoBehaviour
         LongJump();
         
         SetMaxVelocity();
-        print("Y Velocity: "+ (int) m_Rigidbody2D.velocity.y);
+        //print("Y Velocity: "+ (int) m_Rigidbody2D.velocity.y);
+
+        OnWall();
+        //print("On Wall: " + OnWall());
+
+        dashCheck = !IsGrounded() && m_Input.downDash;
+        print("DashCheck says:" + dashCheck);
     }
 
     private void FixedUpdate()
     {
+        if (dashCheck) return;
         m_Rigidbody2D.velocity = new Vector2(m_Input.moveVector.x * moveSpeed, m_Rigidbody2D.velocity.y);
     }
 
-    private void Dash(bool inputDirection, Vector2 vector2, float dashSpeed)
+    private void DownDash()
     {
-        if (inputDirection)
+        if (m_Input.downDash)
         {
-            m_Rigidbody2D.AddForce(vector2 * dashSpeed);
+            m_Rigidbody2D.velocity = new Vector2(0f, m_Rigidbody2D.velocity.y);
+            m_Rigidbody2D.AddForce(Vector2.down * m_DownSpeed, ForceMode2D.Force);
         }
     }
 
@@ -84,7 +94,6 @@ public class PlayerMove : MonoBehaviour
                 m_IsJumping = false;
             }
         }
-
         if (!m_Input.longJump)
         {
             m_IsJumping = false;
@@ -105,11 +114,29 @@ public class PlayerMove : MonoBehaviour
     {
         var position = transform.position;
         var direction = Vector2.down;
-        const float distance = 1.5f;
+        const float distance = 1.1f;
         
         Debug.DrawRay(position, direction, new Color(1f, 0f, 1f));
         var hit = Physics2D.Raycast(position, direction, distance, whatIsGround);
+        
+        return hit.collider != null;
+    }
 
+
+    
+    private bool OnWall()
+    {
+        if (m_Input.moveVector.x != 0)
+        {
+            m_Dir = new Vector2(m_Input.moveVector.x, 0f);
+        }
+        
+        var position = transform.position;
+        const float distance = 0.4f;
+        
+        Debug.DrawRay(position, m_Dir, new Color(1f, 0f, 1f));
+        var hit = Physics2D.Raycast(position, m_Dir, distance, whatIsGround);
+        
         return hit.collider != null;
     }
 }
