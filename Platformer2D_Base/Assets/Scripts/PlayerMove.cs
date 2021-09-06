@@ -5,18 +5,24 @@ using UnityEngine;
 
 public class PlayerMove : MonoBehaviour
 {
+    [Header("Movement Variables")]
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField]private float jumpForce = 7f;
+    [SerializeField] private float m_dashSpeed;
+    [SerializeField] private float m_DownSpeed = 4f;
     [SerializeField] private LayerMask whatIsGround;
-    
-    
+
+    /*COMPONENTS*/
     private PlayerInput m_Input;
     private Rigidbody2D m_Rigidbody2D;
 
+    /*JUMPING*/
     private bool m_IsJumping = false;
     private float m_JumpTimeCounter;
     private float m_JumpTime = 0.25f;
     
+   
+
 
     private void Start()
     {
@@ -26,12 +32,21 @@ public class PlayerMove : MonoBehaviour
     
     private void Update()
     {
+        
+        Dash(m_Input.downDash, Vector2.down, m_DownSpeed);
+
+        var dashDir = new Vector2(m_Rigidbody2D.velocity.x, 0f);
+        Dash(m_Input.horizontalDash, dashDir, m_dashSpeed);
+        
         if (m_Input.jump)
         {
             Jumping();
         }
+        
         LongJump();
         
+        SetMaxVelocity();
+        print("Y Velocity: "+ (int) m_Rigidbody2D.velocity.y);
     }
 
     private void FixedUpdate()
@@ -39,17 +54,25 @@ public class PlayerMove : MonoBehaviour
         m_Rigidbody2D.velocity = new Vector2(m_Input.moveVector.x * moveSpeed, m_Rigidbody2D.velocity.y);
     }
 
+    private void Dash(bool inputDirection, Vector2 vector2, float dashSpeed)
+    {
+        if (inputDirection)
+        {
+            m_Rigidbody2D.AddForce(vector2 * dashSpeed);
+        }
+    }
+
     private void Jumping()
     {
         if (!IsGrounded()) return;
             m_IsJumping = true; //Long Jump
-            m_JumpTimeCounter = m_JumpTime; // Long Juump
+            m_JumpTimeCounter = m_JumpTime; // Long Jump
         m_Rigidbody2D.velocity = new Vector2(m_Rigidbody2D.velocity.x, jumpForce);
     }
 
     private void LongJump()
     {
-        if (!m_Input.longJump && !m_IsJumping)
+        if (m_Input.longJump && m_IsJumping)
         {
             if (m_JumpTimeCounter > 0)
             {
@@ -65,6 +88,15 @@ public class PlayerMove : MonoBehaviour
         if (!m_Input.longJump)
         {
             m_IsJumping = false;
+        }
+    }
+
+    private void SetMaxVelocity()
+    {
+        if (IsGrounded()) return;
+        if (m_Rigidbody2D.velocity.y < -16f)
+        {
+            m_Rigidbody2D.velocity = new Vector2(m_Rigidbody2D.velocity.x, -16f);
         }
     }
     
