@@ -5,15 +5,18 @@ namespace Movement
 {
     public class MovementController : MonoBehaviour
     {
-        private PlayerInput m_Input;
-        private CollisionsController m_Collisions;
-        private JumpController m_Jump;
-        private DashController m_Dash;
+        #region Script Controllers
+            private PlayerInput m_Input;
+            private CollisionsController m_Collisions;
+            private JumpController m_Jump;
+            private DashController m_Dash;
+        #endregion
+        
 
         private Rigidbody2D m_Rigidbody2D;
     
         // Start is called before the first frame update
-        void Start()
+        private void Start()
         {
             m_Rigidbody2D = GetComponent<Rigidbody2D>();
             m_Input = GetComponent<PlayerInput>();
@@ -24,10 +27,14 @@ namespace Movement
 
         private void Update()
         {
-            /* JUMPING */
-            m_Jump.Jumping(m_Collisions.IsGrounded(),m_Rigidbody2D);
-            m_Jump.LongJump(m_Input.longJump, m_Rigidbody2D);
+            /*IS GROUNDED*/ // if Not Grounded, Don't read code below
+            if (!m_Collisions.IsGrounded()) return;
             
+            
+            /* JUMPING */
+                m_Jump.Jumping(m_Rigidbody2D);
+                m_Jump.LongJump(m_Input.longJump, m_Rigidbody2D);
         }
     }
 }
+

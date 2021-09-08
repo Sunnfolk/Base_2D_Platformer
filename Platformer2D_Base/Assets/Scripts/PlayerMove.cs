@@ -1,7 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
@@ -9,7 +5,7 @@ public class PlayerMove : MonoBehaviour
 {
     [Header("Movement Variables")]
     [SerializeField] private float moveSpeed = 5f;
-    [SerializeField]private float jumpForce = 7f;
+    [SerializeField] private float jumpForce = 7f;
     [SerializeField] private float m_dashSpeed;
     [SerializeField] private float m_DownSpeed = 4f;
     [SerializeField] private LayerMask whatIsGround;
@@ -35,10 +31,15 @@ public class PlayerMove : MonoBehaviour
     
     private void Update()
     {
-       
-        
-        IsGrounded();
         DownDash();
+
+        if (IsGrounded())
+        {
+            GrapplingHook.Hooked = false;
+        }
+        
+        if(GrapplingHook.Hooked) return;
+        
         
         if (m_Input.jump)
         {
@@ -55,11 +56,13 @@ public class PlayerMove : MonoBehaviour
 
         dashCheck = !IsGrounded() && m_Input.downDash;
         print("DashCheck says:" + dashCheck);
+        
     }
 
     private void FixedUpdate()
     {
-        if (dashCheck) return;
+        if (GrapplingHook.Hooked) return;
+        //if (dashCheck) return;
         m_Rigidbody2D.velocity = new Vector2(m_Input.moveVector.x * moveSpeed, m_Rigidbody2D.velocity.y);
     }
 
@@ -75,9 +78,21 @@ public class PlayerMove : MonoBehaviour
     private void Jumping()
     {
         if (!IsGrounded()) return;
+        
             m_IsJumping = true; //Long Jump
             m_JumpTimeCounter = m_JumpTime; // Long Jump
         m_Rigidbody2D.velocity = new Vector2(m_Rigidbody2D.velocity.x, jumpForce);
+    }
+    
+    public void JustJump()
+    {
+        m_Rigidbody2D.velocity = new Vector2(m_Rigidbody2D.velocity.x, jumpForce);
+        m_Rigidbody2D.AddRelativeForce(m_Rigidbody2D.velocity, ForceMode2D.Impulse);
+    }
+
+    public void ExtraJump()
+    {
+        m_Rigidbody2D.AddRelativeForce(m_Rigidbody2D.velocity, ForceMode2D.Impulse);
     }
 
     private void LongJump()

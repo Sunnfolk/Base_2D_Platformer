@@ -10,9 +10,8 @@ namespace Movement
         private float m_JumpTimeCounter;
         private const float k_JumpTime = 0.25f;
 
-        public void Jumping(bool isGrounded, Rigidbody2D rigidbody2D)
+        public void Jumping(Rigidbody2D rigidbody2D)
         {
-            if (!isGrounded) return;
             m_IsJumping = true; //Long Jump
             m_JumpTimeCounter = k_JumpTime; // Long Jump
             rigidbody2D.velocity = new Vector2(rigidbody2D.velocity.x, jumpForce);
